@@ -1,0 +1,16 @@
+.logo {
+  display: block;
+  width: min(260px, 62vw);
+  height: 86px;
+  object-fit: cover;
+  object-position: center;
+  margin: 8px 0 4px 28px;
+}
+
+@media (max-width: 640px) {
+  .logo {
+    width: min(210px, 74vw);
+    height: 72px;
+    margin: 6px 0 2px 16px;
+  }
+}

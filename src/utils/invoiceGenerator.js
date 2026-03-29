@@ -10,6 +10,18 @@ export function generateInvoiceNumber() {
   return `INV-${String(count).padStart(4, '0')}`;
 }
 
+// counter for how many invoices have actually been exported (PDF or Excel)
+
+export function getExportedCount() {
+  return parseInt(localStorage.getItem('invoicesExported') || '0', 10);
+}
+
+export function incrementExportedCount() {
+  const next = getExportedCount() + 1;
+  localStorage.setItem('invoicesExported', next);
+  return next;
+}
+
 /**
  * Record metadata for tracking
  * @param {{email?: string, industry?: string}} data

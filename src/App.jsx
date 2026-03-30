@@ -74,9 +74,11 @@ function App() {
     }
   };
 
+  const invoiceCount = parseInt(invoice.internalNumber.replace('INV-', ''), 10);
+
   return (
     <>
-      <Header />
+      <Header invoiceCount={invoiceCount} />
       <div className="main-container">
         <div className="left-side">
           <InvoiceForm invoice={invoice} onChange={handleInvoiceChange} onLogoChange={handleLogoChange} />

@@ -6,7 +6,7 @@ import InvoiceSummary from './components/InvoiceSummary';
 import SignaturePad from './components/SignaturePad';
 import InvoicePreview from './components/InvoicePreview';
 import ExportActions from './components/ExportActions';
-import { generateInvoiceNumber, recordInvoiceData, getExportedCount, incrementExportedCount } from './utils/invoiceGenerator';
+import { generateInvoiceNumber, recordInvoiceData } from './utils/invoiceGenerator';
 
 function App() {
   const [invoice, setInvoice] = useState({
@@ -32,7 +32,6 @@ function App() {
   const [items, setItems] = useState([]);
   const [signature, setSignature] = useState(null);
   const [logo, setLogo] = useState(null);
-  const [exportedCount, setExportedCount] = useState(getExportedCount);
   const sigRef = useRef();
 
   const handleInvoiceChange = (newData) => {
@@ -77,7 +76,7 @@ function App() {
 
   return (
     <>
-      <Header exportedCount={exportedCount} />
+      <Header />
       <div className="main-container">
         <div className="left-side">
           <InvoiceForm invoice={invoice} onChange={handleInvoiceChange} onLogoChange={handleLogoChange} />
@@ -98,13 +97,7 @@ function App() {
         <div className="right-side">
           <InvoicePreview invoice={invoice} items={items} signature={signature} logo={logo} />
           <InvoiceSummary items={items} currency={invoice.currency} />
-          <ExportActions
-            invoice={invoice}
-            items={items}
-            signature={signature}
-            logo={logo}
-            onExport={() => setExportedCount(incrementExportedCount())}
-          />
+          <ExportActions invoice={invoice} items={items} signature={signature} logo={logo} />
         </div>
       </div>
     </>

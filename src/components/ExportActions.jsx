@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { calculateLineTotal } from '../utils/calculations';
 import { downloadInvoicePdf } from '../utils/invoiceGenerator';
-import EmailModal from './EmailModal';
 
-export default function ExportActions({ invoice, items, signature, logo, onExport }) {
+export default function ExportActions({ invoice, items, signature, logo }) {
   const [template, setTemplate] = useState('template-1');
-  const [showEmailModal, setShowEmailModal] = useState(false);
 
   const downloadPdf = () => {
     const subtotal = items.reduce((sum, item) => sum + calculateLineTotal(item.quantity, item.unitPrice), 0);
@@ -34,7 +32,6 @@ export default function ExportActions({ invoice, items, signature, logo, onExpor
       companyWebsite: invoice.senderWebsite,
       tagline: invoice.tagline,
     });
-    onExport?.();
   };
 
   const downloadExcel = () => {
@@ -57,33 +54,20 @@ export default function ExportActions({ invoice, items, signature, logo, onExpor
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Invoice');
     XLSX.writeFile(wb, `invoice-${invoice.number}.xlsx`);
-    onExport?.();
   };
 
   return (
-    <>
-      <div className="export-actions">
-        <label>
-          PDF Template
-          <select value={template} onChange={(event) => setTemplate(event.target.value)}>
-            <option value="template-1">Template 1: Corporate</option>
-            <option value="template-2">Template 2: Monochrome</option>
-            <option value="template-3">Template 3: Creative</option>
-          </select>
-        </label>
-        <button onClick={downloadPdf}>Download PDF</button>
-        <button onClick={downloadExcel}>Download Excel</button>
-        <button onClick={() => setShowEmailModal(true)}>Send via Email</button>
-      </div>
-
-      {showEmailModal && (
-        <EmailModal
-          invoice={invoice}
-          items={items}
-          onClose={() => setShowEmailModal(false)}
-        />
-      )}
-    </>
+    <div className="export-actions">
+      <label>
+        PDF Template
+        <select value={template} onChange={(event) => setTemplate(event.target.value)}>
+          <option value="template-1">Template 1: Corporate</option>
+          <option value="template-2">Template 2: Monochrome</option>
+          <option value="template-3">Template 3: Creative</option>
+        </select>
+      </label>
+      <button onClick={downloadPdf}>Download PDF</button>
+      <button onClick={downloadExcel}>Download Excel</button>
+    </div>
   );
 }
-

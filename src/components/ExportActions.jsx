@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { calculateLineTotal } from '../utils/calculations';
-import { downloadInvoicePdf } from '../utils/invoiceGenerator';
+import { downloadInvoicePdf, generateInvoicePdfDataUrl } from '../utils/invoiceGenerator';
+import PdfPreviewModal from './PdfPreviewModal';
 
 export default function ExportActions({ invoice, items, signature, logo }) {
   const [template, setTemplate] = useState('template-1');
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [pdfDataUrl, setPdfDataUrl] = useState(null);
 
-  const downloadPdf = () => {
+  const buildPdfData = () => {
     const subtotal = items.reduce((sum, item) => sum + calculateLineTotal(item.quantity, item.unitPrice), 0);
-
-    downloadInvoicePdf(template, {
+    return {
       companyName: invoice.senderCompanyName,
       companyAddress: invoice.senderCompanyAddress,
       companyEmail: invoice.senderEmail,
@@ -31,7 +33,18 @@ export default function ExportActions({ invoice, items, signature, logo }) {
       companyPhone: invoice.senderPhone,
       companyWebsite: invoice.senderWebsite,
       tagline: invoice.tagline,
-    });
+    };
+  };
+
+  const handlePreviewPdf = () => {
+    const dataUrl = generateInvoicePdfDataUrl(template, buildPdfData());
+    setPdfDataUrl(dataUrl);
+    setPreviewOpen(true);
+  };
+
+  const handleConfirmDownload = () => {
+    downloadInvoicePdf(template, buildPdfData());
+    setPreviewOpen(false);
   };
 
   const downloadExcel = () => {
@@ -66,8 +79,14 @@ export default function ExportActions({ invoice, items, signature, logo }) {
           <option value="template-3">Template 3: Creative</option>
         </select>
       </label>
-      <button onClick={downloadPdf}>Download PDF</button>
+      <button onClick={handlePreviewPdf}>Download PDF</button>
       <button onClick={downloadExcel}>Download Excel</button>
+      <PdfPreviewModal
+        isOpen={previewOpen}
+        pdfDataUrl={pdfDataUrl}
+        onClose={() => setPreviewOpen(false)}
+        onDownload={handleConfirmDownload}
+      />
     </div>
   );
 }

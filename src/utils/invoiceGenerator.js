@@ -100,208 +100,524 @@ function drawRows(doc, y, rows, options = {}) {
   return currentY;
 }
 
+// TEMPLATE 1: Corporate Premium
 function drawTemplateOne(doc, data) {
   const rows = buildRows(data.items, data.currency);
-  const subtotal = rows.reduce((sum, row) => sum + row.total, 0);
+  const subtotal = rows.reduce((s, r) => s + r.total, 0);
   const tax = data.tax || 0;
   const total = subtotal + tax;
 
+  // White background
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, 210, 297, 'F');
-  addImageIfPresent(doc, data.logo, 14, 14, 26, 18);
 
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(28, 28, 30);
-  doc.setFontSize(24);
-  doc.text('INVOICE', 14, 24);
-
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Invoice Number`, 14, 34);
-  doc.text(`${data.invoiceNumber || '-'}`, 14, 39);
-  doc.text(`Invoice Date`, 14, 46);
-  doc.text(`${data.invoiceDate || '-'}`, 14, 51);
-  doc.text(`Due Date`, 14, 58);
-  doc.text(`${data.dueDate || '-'}`, 14, 63);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text(data.companyName || '-', 140, 20, { align: 'right' });
-  doc.setFont('helvetica', 'normal');
-  doc.text(doc.splitTextToSize(data.companyAddress || '-', 48), 140, 26, { align: 'right' });
-  doc.text(data.companyEmail || '-', 140, 40, { align: 'right' });
-
-  doc.setDrawColor(224, 226, 230);
-  doc.line(14, 72, 196, 72);
-
-  doc.setFont('helvetica', 'bold');
-  doc.text('Bill To:', 14, 84);
-  doc.setFont('helvetica', 'normal');
-  doc.text(data.clientName || '-', 14, 90);
-  doc.text(data.clientEmail || '-', 14, 96);
-
-  drawTableHeader(doc, 112, ['Description', 'Unit Price', 'Quantity', 'Total']);
-  const endY = drawRows(doc, 121, rows);
-
-  const summaryY = endY + 12;
-  doc.setFont('helvetica', 'normal');
-  doc.text('Subtotal', 150, summaryY, { align: 'right' });
-  doc.text(formatCurrency(subtotal, 'en-NG', data.currency), 188, summaryY, { align: 'right' });
-  doc.text('Tax', 150, summaryY + 8, { align: 'right' });
-  doc.text(formatCurrency(tax, 'en-NG', data.currency), 188, summaryY + 8, { align: 'right' });
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  doc.text('Total Due', 150, summaryY + 20, { align: 'right' });
-  doc.text(formatCurrency(total, 'en-NG', data.currency), 188, summaryY + 20, { align: 'right' });
-
-  if (data.signature) {
-    addImageIfPresent(doc, data.signature, 14, 228, 40, 18);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(data.signerName || 'Authorized Signature', 14, 251);
-  }
-
-  doc.setFillColor(28, 28, 30);
-  doc.rect(0, 262, 210, 35, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Notes / Terms', 14, 273);
-  doc.setFont('helvetica', 'normal');
-  doc.text(doc.splitTextToSize(data.notes || 'Thank you for your business.', 80), 14, 280);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Payment Instructions', 128, 273);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Please pay to the account on file.', 128, 280);
-  doc.text(data.companyEmail || '-', 128, 286);
-}
-
-function drawTemplateTwo(doc, data) {
-  const rows = buildRows(data.items, data.currency);
-  const subtotal = rows.reduce((sum, row) => sum + row.total, 0);
-  const total = subtotal + (data.tax || 0);
-
-  doc.setFillColor(255, 255, 255);
-  doc.rect(0, 0, 210, 297, 'F');
-  doc.setTextColor(20, 20, 20);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  doc.text(`Invoice To: ${data.clientName || '-'}`, 14, 20);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text(`No. Invoice: ${data.invoiceNumber || '-'}`, 196, 18, { align: 'right' });
-  doc.text(`Date: ${data.invoiceDate || '-'}`, 196, 24, { align: 'right' });
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(34);
-  doc.text('Invoice', 14, 56);
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text(data.tagline || 'Structured billing for modern businesses', 14, 64);
-
-  doc.setDrawColor(18, 18, 18);
-  doc.rect(136, 40, 60, 42);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.text('FIND US FOR MORE INFORMATION', 166, 49, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
-  doc.text(doc.splitTextToSize(data.companyPhone || '+234 000 000 0000', 50), 141, 58);
-  doc.text(data.companyEmail || '-', 141, 66);
-  doc.text(data.companyWebsite || 'www.freeinvoice.app', 141, 72);
-  doc.text(doc.splitTextToSize(data.companyAddress || '-', 50), 141, 78);
-
-  const tableStart = 145;
-  const tableHeight = Math.max(110, rows.length * 13 + 42);
-  doc.setFillColor(18, 18, 18);
-  doc.rect(0, tableStart, 210, tableHeight, 'F');
-
-  drawTableHeader(doc, tableStart + 12, ['ITEM DESCRIPTION', 'UNIT PRICE', 'QUANTITY', 'AMOUNT'], { dark: true });
-  const endY = drawRows(doc, tableStart + 24, rows, { dark: true });
-
-  doc.setFillColor(255, 255, 255);
-  doc.roundedRect(118, endY + 10, 36, 12, 6, 6, 'F');
-  doc.roundedRect(158, endY + 10, 38, 12, 6, 6, 'F');
-  doc.setTextColor(18, 18, 18);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.text(`SUB TOTAL: ${formatCurrency(subtotal, 'en-NG', data.currency)}`, 136, endY + 18, { align: 'center' });
-  doc.text(`TOTAL: ${formatCurrency(total, 'en-NG', data.currency)}`, 177, endY + 18, { align: 'center' });
-}
-
-function drawTemplateThree(doc, data) {
-  const rows = buildRows(data.items, data.currency);
-  const subtotal = rows.reduce((sum, row) => sum + row.total, 0);
-  const total = subtotal + (data.tax || 0);
-
-  doc.setFillColor(250, 250, 248);
-  doc.rect(0, 0, 210, 297, 'F');
+  // Header band — deep navy
   doc.setFillColor(30, 53, 99);
-  doc.triangle(0, 0, 92, 0, 0, 92, 'F');
-  doc.setFillColor(194, 231, 255);
-  doc.circle(176, 48, 28, 'F');
+  doc.rect(0, 0, 210, 50, 'F');
+  // Bright accent stripe at bottom of header
+  doc.setFillColor(74, 105, 189);
+  doc.rect(0, 47, 210, 3, 'F');
 
-  addImageIfPresent(doc, data.logo, 14, 14, 22, 22);
+  // Logo
+  addImageIfPresent(doc, data.logo, 14, 10, 28, 26);
+
+  // INVOICE title (white)
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(22);
-  doc.text('Creative Invoice', 14, 48);
+  doc.setFontSize(26);
+  doc.text('INVOICE', 52, 32);
 
+  // Invoice meta — top right in header
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text(data.invoiceNumber || 'INV-001', 196, 16, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(180, 200, 240);
+  doc.text(`Issued: ${data.invoiceDate || '-'}`, 196, 26, { align: 'right' });
+  doc.text(`Due: ${data.dueDate || '-'}`, 196, 36, { align: 'right' });
+
+  // FROM section
+  doc.setTextColor(100, 120, 150);
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text('FROM', 14, 64);
   doc.setTextColor(28, 28, 30);
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.text(data.companyName || '-', 124, 24);
+  doc.text(data.companyName || '-', 14, 72);
   doc.setFont('helvetica', 'normal');
-  doc.text(data.companyEmail || '-', 124, 31);
-  doc.text(doc.splitTextToSize(data.companyAddress || '-', 60), 124, 38);
+  doc.setFontSize(8.5);
+  doc.setTextColor(80, 85, 95);
+  const addrLines = doc.splitTextToSize(data.companyAddress || '-', 80);
+  doc.text(addrLines, 14, 79);
+  const afterAddr = 79 + addrLines.length * 4.5;
+  doc.text(data.companyEmail || '-', 14, afterAddr + 3);
+  if (data.companyPhone) doc.text(data.companyPhone, 14, afterAddr + 9);
 
-  doc.setDrawColor(205, 210, 216);
-  doc.roundedRect(14, 86, 86, 34, 5, 5);
-  doc.roundedRect(110, 86, 86, 34, 5, 5);
+  // BILL TO section
+  doc.setTextColor(100, 120, 150);
+  doc.setFontSize(7.5);
   doc.setFont('helvetica', 'bold');
-  doc.text('Bill To', 20, 96);
-  doc.text('Invoice Details', 116, 96);
+  doc.text('BILL TO', 120, 64);
+  doc.setTextColor(28, 28, 30);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text(data.clientName || '-', 120, 72);
   doc.setFont('helvetica', 'normal');
-  doc.text(data.clientName || '-', 20, 104);
-  doc.text(data.clientEmail || '-', 20, 111);
-  doc.text(data.clientCompanyName || '-', 20, 118);
-  doc.text(`ID: ${data.invoiceNumber || '-'}`, 116, 104);
-  doc.text(`Date: ${data.invoiceDate || '-'}`, 116, 111);
-  doc.text(`Due: ${data.dueDate || '-'}`, 116, 118);
+  doc.setFontSize(8.5);
+  doc.setTextColor(80, 85, 95);
+  doc.text(data.clientCompanyName || '-', 120, 79);
+  doc.text(data.clientEmail || '-', 120, 85);
 
-  doc.setFillColor(255, 255, 255);
-  doc.roundedRect(14, 132, 182, 88, 8, 8, 'F');
-  drawTableHeader(doc, 146, ['Description', 'Unit Price', 'Quantity', 'Total']);
-  const endY = drawRows(doc, 156, rows);
+  // Section divider
+  doc.setDrawColor(220, 226, 235);
+  doc.setLineWidth(0.3);
+  doc.line(14, 99, 196, 99);
 
+  // Table header bar
   doc.setFillColor(30, 53, 99);
-  doc.roundedRect(120, endY + 10, 76, 28, 8, 8, 'F');
+  doc.rect(14, 103, 182, 10, 'F');
   doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Subtotal', 128, endY + 20);
-  doc.text(formatCurrency(subtotal, 'en-NG', data.currency), 190, endY + 20, { align: 'right' });
-  doc.text('Total Due', 128, endY + 30);
   doc.setFont('helvetica', 'bold');
-  doc.text(formatCurrency(total, 'en-NG', data.currency), 190, endY + 30, { align: 'right' });
+  doc.setFontSize(8);
+  doc.text('DESCRIPTION', 18, 110);
+  doc.text('UNIT PRICE', 116, 110, { align: 'right' });
+  doc.text('QTY', 148, 110, { align: 'right' });
+  doc.text('TOTAL', 192, 110, { align: 'right' });
 
-  if (data.signature) {
-    addImageIfPresent(doc, data.signature, 14, 238, 38, 16);
-  }
+  // Table rows with alternating stripes
+  let curY = 120;
+  doc.setFontSize(8.5);
+  rows.forEach((row, idx) => {
+    const lines = doc.splitTextToSize(row.description, 88);
+    const rh = Math.max(9, lines.length * 4.5 + 3);
+    if (idx % 2 === 0) {
+      doc.setFillColor(247, 249, 252);
+      doc.rect(14, curY - 6, 182, rh, 'F');
+    }
+    doc.setTextColor(30, 30, 35);
+    doc.setFont('helvetica', 'normal');
+    doc.text(lines, 18, curY);
+    doc.text(formatCurrency(row.unitPrice, 'en-NG', row.currency), 116, curY, { align: 'right' });
+    doc.text(String(row.quantity), 148, curY, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.text(formatCurrency(row.total, 'en-NG', row.currency), 192, curY, { align: 'right' });
+    curY += rh;
+  });
+
+  // Table bottom border
+  doc.setDrawColor(220, 226, 235);
+  doc.setLineWidth(0.5);
+  doc.line(14, curY + 2, 196, curY + 2);
+
+  // Summary box (right-aligned)
+  const sy = curY + 12;
+  doc.setFillColor(247, 249, 252);
+  doc.roundedRect(118, sy, 78, 42, 4, 4, 'F');
+  doc.setDrawColor(220, 226, 235);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(118, sy, 78, 42, 4, 4, 'S');
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 110, 130);
+  doc.text('Subtotal', 124, sy + 11);
+  doc.text(formatCurrency(subtotal, 'en-NG', data.currency), 192, sy + 11, { align: 'right' });
+  doc.text('Tax', 124, sy + 21);
+  doc.text(formatCurrency(tax, 'en-NG', data.currency), 192, sy + 21, { align: 'right' });
+  doc.setDrawColor(200, 210, 225);
+  doc.line(124, sy + 26, 192, sy + 26);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(30, 53, 99);
+  doc.text('TOTAL DUE', 124, sy + 36);
+  doc.text(formatCurrency(total, 'en-NG', data.currency), 192, sy + 36, { align: 'right' });
+
+  // Signature
+  const sigY = 240;
+  if (data.signature) addImageIfPresent(doc, data.signature, 14, sigY - 18, 42, 18);
+  doc.setDrawColor(180, 190, 205);
+  doc.setLineWidth(0.3);
+  doc.line(14, sigY, 64, sigY);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(120, 130, 145);
+  doc.text(data.signerName || 'Authorized Signature', 14, sigY + 5);
+
+  // Footer band
+  doc.setFillColor(30, 53, 99);
+  doc.rect(0, 260, 210, 37, 'F');
+  doc.setFillColor(74, 105, 189);
+  doc.rect(0, 260, 210, 3, 'F');
+  doc.setTextColor(160, 185, 225);
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.text('NOTES & TERMS', 14, 272);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(210, 220, 240);
+  doc.text(doc.splitTextToSize(data.notes || 'Thank you for your business. Payment due within the stated period.', 84), 14, 278);
+  doc.setTextColor(160, 185, 225);
+  doc.setFont('helvetica', 'bold');
+  doc.text('GET IN TOUCH', 128, 272);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(210, 220, 240);
+  if (data.companyEmail) doc.text(data.companyEmail, 128, 278);
+  if (data.companyPhone) doc.text(data.companyPhone, 128, 284);
+  if (data.companyWebsite) doc.text(data.companyWebsite, 128, 290);
+}
+
+// TEMPLATE 2: Minimalist Monochrome
+function drawTemplateTwo(doc, data) {
+  const rows = buildRows(data.items, data.currency);
+  const subtotal = rows.reduce((s, r) => s + r.total, 0);
+  const tax = data.tax || 0;
+  const total = subtotal + tax;
+
+  // White background
+  doc.setFillColor(255, 255, 255);
+  doc.rect(0, 0, 210, 297, 'F');
+
+  // Top accent bar (black)
+  doc.setFillColor(18, 18, 18);
+  doc.rect(0, 0, 210, 2, 'F');
+  // Left sidebar accent
+  doc.setFillColor(18, 18, 18);
+  doc.rect(0, 0, 4, 297, 'F');
+
+  // Big INVOICE word — top right
+  doc.setTextColor(18, 18, 18);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(38);
+  doc.text('INVOICE', 196, 28, { align: 'right' });
+
+  // Invoice number below title
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.text(data.invoiceNumber || 'INV-001', 196, 38, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Issued: ${data.invoiceDate || '-'}`, 196, 46, { align: 'right' });
+  doc.text(`Due: ${data.dueDate || '-'}`, 196, 53, { align: 'right' });
+
+  // FROM — left side
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(130, 130, 130);
+  doc.text('FROM', 14, 20);
+  doc.setTextColor(18, 18, 18);
+  doc.setFontSize(12);
+  doc.text(data.companyName || '-', 14, 30);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(80, 80, 80);
+  doc.text(doc.splitTextToSize(data.companyAddress || '-', 74), 14, 38);
+  doc.text(data.companyEmail || '-', 14, 53);
+  if (data.companyPhone) doc.text(data.companyPhone, 14, 59);
+
+  // Full-width divider
+  doc.setDrawColor(18, 18, 18);
+  doc.setLineWidth(0.8);
+  doc.line(14, 68, 196, 68);
+
+  // BILL TO box
+  doc.setFillColor(245, 245, 245);
+  doc.rect(14, 74, 90, 32, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(130, 130, 130);
+  doc.text('BILL TO', 20, 84);
+  doc.setTextColor(18, 18, 18);
+  doc.setFontSize(10);
+  doc.text(data.clientName || '-', 20, 93);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(80, 80, 80);
+  doc.text(data.clientCompanyName || '-', 20, 100);
+  doc.text(data.clientEmail || '-', 20, 106);
+
+  // Invoice details box
+  doc.setFillColor(245, 245, 245);
+  doc.rect(114, 74, 82, 32, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(130, 130, 130);
+  doc.text('INVOICE DETAILS', 120, 84);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(50, 50, 50);
+  doc.text(`Invoice #: ${data.invoiceNumber || '-'}`, 120, 93);
+  doc.text(`Date: ${data.invoiceDate || '-'}`, 120, 100);
+  doc.text(`Due: ${data.dueDate || '-'}`, 120, 107);
+
+  // Table
+  const tStart = 116;
+  doc.setFillColor(18, 18, 18);
+  doc.rect(14, tStart, 182, 10, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.text('DESCRIPTION', 18, tStart + 7);
+  doc.text('UNIT PRICE', 116, tStart + 7, { align: 'right' });
+  doc.text('QTY', 148, tStart + 7, { align: 'right' });
+  doc.text('TOTAL', 192, tStart + 7, { align: 'right' });
+
+  let curY = tStart + 17;
+  doc.setFontSize(8.5);
+  rows.forEach((row, idx) => {
+    const lines = doc.splitTextToSize(row.description, 88);
+    const rh = Math.max(9, lines.length * 4.5 + 3);
+    if (idx % 2 !== 0) {
+      doc.setFillColor(245, 245, 245);
+      doc.rect(14, curY - 6, 182, rh, 'F');
+    }
+    doc.setTextColor(30, 30, 30);
+    doc.setFont('helvetica', 'normal');
+    doc.text(lines, 18, curY);
+    doc.text(formatCurrency(row.unitPrice, 'en-NG', row.currency), 116, curY, { align: 'right' });
+    doc.text(String(row.quantity), 148, curY, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.text(formatCurrency(row.total, 'en-NG', row.currency), 192, curY, { align: 'right' });
+    curY += rh;
+  });
+
+  // Table bottom border
+  doc.setDrawColor(18, 18, 18);
+  doc.setLineWidth(0.8);
+  doc.line(14, curY + 3, 196, curY + 3);
+
+  // Summary (right-aligned)
+  const sy = curY + 14;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(100, 100, 100);
+  doc.text('Subtotal', 152, sy, { align: 'right' });
+  doc.setTextColor(30, 30, 30);
+  doc.text(formatCurrency(subtotal, 'en-NG', data.currency), 192, sy, { align: 'right' });
+  doc.setTextColor(100, 100, 100);
+  doc.text('Tax', 152, sy + 9, { align: 'right' });
+  doc.setTextColor(30, 30, 30);
+  doc.text(formatCurrency(tax, 'en-NG', data.currency), 192, sy + 9, { align: 'right' });
+  doc.setDrawColor(18, 18, 18);
+  doc.setLineWidth(0.8);
+  doc.line(120, sy + 13, 196, sy + 13);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(18, 18, 18);
+  doc.text('TOTAL', 152, sy + 23, { align: 'right' });
+  doc.text(formatCurrency(total, 'en-NG', data.currency), 192, sy + 23, { align: 'right' });
+
+  // Signature
+  const sigY = 240;
+  if (data.signature) addImageIfPresent(doc, data.signature, 14, sigY - 16, 42, 16);
+  doc.setDrawColor(18, 18, 18);
+  doc.setLineWidth(0.5);
+  doc.line(14, sigY, 64, sigY);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(100, 100, 100);
+  doc.text(data.signerName || 'Authorized Signature', 14, sigY + 5);
+
+  // Notes
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(80, 80, 80);
+  doc.text('Notes', 14, 263);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(110, 110, 110);
+  doc.text(doc.splitTextToSize(data.notes || 'Thank you for your business.', 100), 14, 269);
+
+  // Bottom bar
+  doc.setFillColor(18, 18, 18);
+  doc.rect(0, 291, 210, 6, 'F');
+}
+
+// TEMPLATE 3: Bold Creative
+function drawTemplateThree(doc, data) {
+  const rows = buildRows(data.items, data.currency);
+  const subtotal = rows.reduce((s, r) => s + r.total, 0);
+  const tax = data.tax || 0;
+  const total = subtotal + tax;
+
+  // Warm off-white background
+  doc.setFillColor(250, 250, 248);
+  doc.rect(0, 0, 210, 297, 'F');
+
+  // Large decorative navy triangle
+  doc.setFillColor(30, 53, 99);
+  doc.triangle(0, 0, 105, 0, 0, 105, 'F');
+  // Bright blue overlay triangle
+  doc.setFillColor(74, 105, 189);
+  doc.triangle(0, 0, 60, 0, 0, 60, 'F');
+
+  // Decorative circles — top right
+  doc.setFillColor(194, 231, 255);
+  doc.circle(188, 20, 20, 'F');
+  doc.setFillColor(74, 105, 189);
+  doc.circle(193, 14, 12, 'F');
+
+  // Logo
+  addImageIfPresent(doc, data.logo, 10, 8, 26, 26);
+
+  // INVOICE title over triangle
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.text('INVOICE', 14, 62);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.text(data.companyName || '-', 14, 71);
+
+  // Company contact — right section
+  doc.setTextColor(40, 50, 70);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text(data.companyName || '-', 196, 42, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(80, 90, 110);
+  doc.text(data.companyEmail || '-', 196, 50, { align: 'right' });
+  doc.text(data.companyPhone || '-', 196, 57, { align: 'right' });
+  doc.text(data.companyWebsite || '-', 196, 64, { align: 'right' });
+
+  // Bill To card
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(14, 82, 88, 38, 5, 5, 'F');
+  doc.setDrawColor(220, 226, 235);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(14, 82, 88, 38, 5, 5, 'S');
+  // card header bar
+  doc.setFillColor(30, 53, 99);
+  doc.roundedRect(14, 82, 88, 11, 5, 5, 'F');
+  doc.rect(14, 87, 88, 6, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.text('BILL TO', 20, 90);
   doc.setTextColor(28, 28, 30);
   doc.setFont('helvetica', 'bold');
-  doc.text(data.signerName || 'Authorized Signature', 14, 260);
+  doc.setFontSize(10);
+  doc.text(data.clientName || '-', 20, 102);
   doc.setFont('helvetica', 'normal');
-  doc.text(doc.splitTextToSize(data.notes || 'We appreciate your business and prompt payment.', 90), 14, 270);
+  doc.setFontSize(8.5);
+  doc.setTextColor(80, 85, 100);
+  doc.text(data.clientCompanyName || '-', 20, 109);
+  doc.text(data.clientEmail || '-', 20, 116);
+
+  // Invoice details card
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(110, 82, 86, 38, 5, 5, 'F');
+  doc.setDrawColor(220, 226, 235);
+  doc.roundedRect(110, 82, 86, 38, 5, 5, 'S');
+  doc.setFillColor(30, 53, 99);
+  doc.roundedRect(110, 82, 86, 11, 5, 5, 'F');
+  doc.rect(110, 87, 86, 6, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.text('INVOICE DETAILS', 116, 90);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(60, 65, 80);
+  doc.text(`Invoice #:  ${data.invoiceNumber || '-'}`, 116, 102);
+  doc.text(`Date:         ${data.invoiceDate || '-'}`, 116, 109);
+  doc.text(`Due:           ${data.dueDate || '-'}`, 116, 116);
+
+  // Table card (white rounded rectangle)
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(14, 130, 182, 90, 6, 6, 'F');
+
+  // Table header
+  doc.setFillColor(30, 53, 99);
+  doc.roundedRect(14, 130, 182, 12, 6, 6, 'F');
+  doc.rect(14, 136, 182, 6, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.text('DESCRIPTION', 20, 138);
+  doc.text('UNIT PRICE', 116, 138, { align: 'right' });
+  doc.text('QTY', 148, 138, { align: 'right' });
+  doc.text('TOTAL', 191, 138, { align: 'right' });
+
+  let curY = 149;
+  doc.setFontSize(8.5);
+  rows.forEach((row, idx) => {
+    const lines = doc.splitTextToSize(row.description, 88);
+    const rh = Math.max(9, lines.length * 4.5 + 3);
+    if (idx % 2 === 0) {
+      doc.setFillColor(247, 249, 254);
+      doc.rect(14, curY - 6, 182, rh, 'F');
+    }
+    doc.setTextColor(30, 35, 50);
+    doc.setFont('helvetica', 'normal');
+    doc.text(lines, 20, curY);
+    doc.text(formatCurrency(row.unitPrice, 'en-NG', row.currency), 116, curY, { align: 'right' });
+    doc.text(String(row.quantity), 148, curY, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.text(formatCurrency(row.total, 'en-NG', row.currency), 191, curY, { align: 'right' });
+    curY += rh;
+  });
+
+  // Summary box (navy pill)
+  const sy = curY + 10;
+  doc.setFillColor(30, 53, 99);
+  doc.roundedRect(116, sy, 80, 38, 6, 6, 'F');
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(160, 190, 235);
+  doc.text('Subtotal', 122, sy + 11);
+  doc.setTextColor(255, 255, 255);
+  doc.text(formatCurrency(subtotal, 'en-NG', data.currency), 191, sy + 11, { align: 'right' });
+  doc.setTextColor(160, 190, 235);
+  doc.text('Tax', 122, sy + 21);
+  doc.setTextColor(255, 255, 255);
+  doc.text(formatCurrency(tax, 'en-NG', data.currency), 191, sy + 21, { align: 'right' });
+  doc.setDrawColor(74, 105, 189);
+  doc.setLineWidth(0.4);
+  doc.line(122, sy + 25, 191, sy + 25);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(194, 231, 255);
+  doc.text('TOTAL DUE', 122, sy + 34);
+  doc.setTextColor(255, 255, 255);
+  doc.text(formatCurrency(total, 'en-NG', data.currency), 191, sy + 34, { align: 'right' });
+
+  // Signature
+  const sigY = 242;
+  if (data.signature) addImageIfPresent(doc, data.signature, 14, sigY - 18, 42, 18);
+  doc.setDrawColor(200, 210, 225);
+  doc.setLineWidth(0.3);
+  doc.line(14, sigY, 64, sigY);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(120, 130, 150);
+  doc.text(data.signerName || 'Authorized Signature', 14, sigY + 5);
+
+  // Notes
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(80, 90, 110);
+  doc.text('Notes', 14, 262);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(110, 120, 140);
+  doc.text(doc.splitTextToSize(data.notes || 'Thank you for your business. We look forward to working with you again.', 100), 14, 268);
+
+  // Decorative footer circles
+  doc.setFillColor(30, 53, 99);
+  doc.circle(202, 292, 16, 'F');
+  doc.setFillColor(74, 105, 189);
+  doc.circle(196, 297, 10, 'F');
+}
+
+function buildDoc(template, data) {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  if (template === 'template-2') drawTemplateTwo(doc, data);
+  else if (template === 'template-3') drawTemplateThree(doc, data);
+  else drawTemplateOne(doc, data);
+  return doc;
+}
+
+export function generateInvoicePdfDataUrl(template, data) {
+  return buildDoc(template, data).output('datauristring');
 }
 
 export function downloadInvoicePdf(template, data) {
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-
-  if (template === 'template-2') {
-    drawTemplateTwo(doc, data);
-  } else if (template === 'template-3') {
-    drawTemplateThree(doc, data);
-  } else {
-    drawTemplateOne(doc, data);
-  }
-
-  doc.save(`invoice-${data.invoiceNumber || 'draft'}.pdf`);
+  buildDoc(template, data).save(`invoice-${data.invoiceNumber || 'draft'}.pdf`);
 }

@@ -53,6 +53,15 @@ function buildRows(items, currency) {
   }));
 }
 
+// PDF-safe formatter — avoids Unicode currency symbols (e.g. ₦) that jsPDF cannot render
+function formatPdfCurrency(value, currency = 'NGN') {
+  const num = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+  return `${currency} ${num}`;
+}
+
 function drawTableHeader(doc, y, columns, options = {}) {
   const { dark = false } = options;
   if (dark) {
@@ -181,15 +190,15 @@ function drawTemplateOne(doc, data) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.text('DESCRIPTION', 18, 110);
-  doc.text('UNIT PRICE', 116, 110, { align: 'right' });
-  doc.text('QTY', 148, 110, { align: 'right' });
-  doc.text('TOTAL', 192, 110, { align: 'right' });
+  doc.text('UNIT PRICE', 130, 110, { align: 'right' });
+  doc.text('QTY', 152, 110, { align: 'right' });
+  doc.text('TOTAL', 194, 110, { align: 'right' });
 
   // Table rows with alternating stripes
   let curY = 120;
   doc.setFontSize(8.5);
   rows.forEach((row, idx) => {
-    const lines = doc.splitTextToSize(row.description, 88);
+    const lines = doc.splitTextToSize(row.description, 68);
     const rh = Math.max(9, lines.length * 4.5 + 3);
     if (idx % 2 === 0) {
       doc.setFillColor(247, 249, 252);
@@ -198,10 +207,10 @@ function drawTemplateOne(doc, data) {
     doc.setTextColor(30, 30, 35);
     doc.setFont('helvetica', 'normal');
     doc.text(lines, 18, curY);
-    doc.text(formatCurrency(row.unitPrice, 'en-NG', row.currency), 116, curY, { align: 'right' });
-    doc.text(String(row.quantity), 148, curY, { align: 'right' });
+    doc.text(formatPdfCurrency(row.unitPrice, row.currency), 130, curY, { align: 'right' });
+    doc.text(String(row.quantity), 152, curY, { align: 'right' });
     doc.setFont('helvetica', 'bold');
-    doc.text(formatCurrency(row.total, 'en-NG', row.currency), 192, curY, { align: 'right' });
+    doc.text(formatPdfCurrency(row.total, row.currency), 194, curY, { align: 'right' });
     curY += rh;
   });
 
@@ -221,16 +230,16 @@ function drawTemplateOne(doc, data) {
   doc.setFontSize(8.5);
   doc.setTextColor(100, 110, 130);
   doc.text('Subtotal', 124, sy + 11);
-  doc.text(formatCurrency(subtotal, 'en-NG', data.currency), 192, sy + 11, { align: 'right' });
+  doc.text(formatPdfCurrency(subtotal, data.currency), 194, sy + 11, { align: 'right' });
   doc.text('Tax', 124, sy + 21);
-  doc.text(formatCurrency(tax, 'en-NG', data.currency), 192, sy + 21, { align: 'right' });
+  doc.text(formatPdfCurrency(tax, data.currency), 194, sy + 21, { align: 'right' });
   doc.setDrawColor(200, 210, 225);
-  doc.line(124, sy + 26, 192, sy + 26);
+  doc.line(124, sy + 26, 194, sy + 26);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(30, 53, 99);
   doc.text('TOTAL DUE', 124, sy + 36);
-  doc.text(formatCurrency(total, 'en-NG', data.currency), 192, sy + 36, { align: 'right' });
+  doc.text(formatPdfCurrency(total, data.currency), 194, sy + 36, { align: 'right' });
 
   // Signature
   const sigY = 240;
@@ -355,14 +364,14 @@ function drawTemplateTwo(doc, data) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.text('DESCRIPTION', 18, tStart + 7);
-  doc.text('UNIT PRICE', 116, tStart + 7, { align: 'right' });
-  doc.text('QTY', 148, tStart + 7, { align: 'right' });
-  doc.text('TOTAL', 192, tStart + 7, { align: 'right' });
+  doc.text('UNIT PRICE', 130, tStart + 7, { align: 'right' });
+  doc.text('QTY', 152, tStart + 7, { align: 'right' });
+  doc.text('TOTAL', 194, tStart + 7, { align: 'right' });
 
   let curY = tStart + 17;
   doc.setFontSize(8.5);
   rows.forEach((row, idx) => {
-    const lines = doc.splitTextToSize(row.description, 88);
+    const lines = doc.splitTextToSize(row.description, 68);
     const rh = Math.max(9, lines.length * 4.5 + 3);
     if (idx % 2 !== 0) {
       doc.setFillColor(245, 245, 245);
@@ -371,10 +380,10 @@ function drawTemplateTwo(doc, data) {
     doc.setTextColor(30, 30, 30);
     doc.setFont('helvetica', 'normal');
     doc.text(lines, 18, curY);
-    doc.text(formatCurrency(row.unitPrice, 'en-NG', row.currency), 116, curY, { align: 'right' });
-    doc.text(String(row.quantity), 148, curY, { align: 'right' });
+    doc.text(formatPdfCurrency(row.unitPrice, row.currency), 130, curY, { align: 'right' });
+    doc.text(String(row.quantity), 152, curY, { align: 'right' });
     doc.setFont('helvetica', 'bold');
-    doc.text(formatCurrency(row.total, 'en-NG', row.currency), 192, curY, { align: 'right' });
+    doc.text(formatPdfCurrency(row.total, row.currency), 194, curY, { align: 'right' });
     curY += rh;
   });
 
@@ -390,11 +399,11 @@ function drawTemplateTwo(doc, data) {
   doc.setTextColor(100, 100, 100);
   doc.text('Subtotal', 152, sy, { align: 'right' });
   doc.setTextColor(30, 30, 30);
-  doc.text(formatCurrency(subtotal, 'en-NG', data.currency), 192, sy, { align: 'right' });
+  doc.text(formatPdfCurrency(subtotal, data.currency), 194, sy, { align: 'right' });
   doc.setTextColor(100, 100, 100);
   doc.text('Tax', 152, sy + 9, { align: 'right' });
   doc.setTextColor(30, 30, 30);
-  doc.text(formatCurrency(tax, 'en-NG', data.currency), 192, sy + 9, { align: 'right' });
+  doc.text(formatPdfCurrency(tax, data.currency), 194, sy + 9, { align: 'right' });
   doc.setDrawColor(18, 18, 18);
   doc.setLineWidth(0.8);
   doc.line(120, sy + 13, 196, sy + 13);
@@ -402,7 +411,7 @@ function drawTemplateTwo(doc, data) {
   doc.setFontSize(11);
   doc.setTextColor(18, 18, 18);
   doc.text('TOTAL', 152, sy + 23, { align: 'right' });
-  doc.text(formatCurrency(total, 'en-NG', data.currency), 192, sy + 23, { align: 'right' });
+  doc.text(formatPdfCurrency(total, data.currency), 194, sy + 23, { align: 'right' });
 
   // Signature
   const sigY = 240;
@@ -532,14 +541,14 @@ function drawTemplateThree(doc, data) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.text('DESCRIPTION', 20, 138);
-  doc.text('UNIT PRICE', 116, 138, { align: 'right' });
-  doc.text('QTY', 148, 138, { align: 'right' });
-  doc.text('TOTAL', 191, 138, { align: 'right' });
+  doc.text('UNIT PRICE', 130, 138, { align: 'right' });
+  doc.text('QTY', 152, 138, { align: 'right' });
+  doc.text('TOTAL', 192, 138, { align: 'right' });
 
   let curY = 149;
   doc.setFontSize(8.5);
   rows.forEach((row, idx) => {
-    const lines = doc.splitTextToSize(row.description, 88);
+    const lines = doc.splitTextToSize(row.description, 66);
     const rh = Math.max(9, lines.length * 4.5 + 3);
     if (idx % 2 === 0) {
       doc.setFillColor(247, 249, 254);
@@ -548,36 +557,36 @@ function drawTemplateThree(doc, data) {
     doc.setTextColor(30, 35, 50);
     doc.setFont('helvetica', 'normal');
     doc.text(lines, 20, curY);
-    doc.text(formatCurrency(row.unitPrice, 'en-NG', row.currency), 116, curY, { align: 'right' });
-    doc.text(String(row.quantity), 148, curY, { align: 'right' });
+    doc.text(formatPdfCurrency(row.unitPrice, row.currency), 130, curY, { align: 'right' });
+    doc.text(String(row.quantity), 152, curY, { align: 'right' });
     doc.setFont('helvetica', 'bold');
-    doc.text(formatCurrency(row.total, 'en-NG', row.currency), 191, curY, { align: 'right' });
+    doc.text(formatPdfCurrency(row.total, row.currency), 192, curY, { align: 'right' });
     curY += rh;
   });
 
   // Summary box (navy pill)
   const sy = curY + 10;
   doc.setFillColor(30, 53, 99);
-  doc.roundedRect(116, sy, 80, 38, 6, 6, 'F');
+  doc.roundedRect(108, sy, 88, 38, 6, 6, 'F');
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   doc.setTextColor(160, 190, 235);
-  doc.text('Subtotal', 122, sy + 11);
+  doc.text('Subtotal', 114, sy + 11);
   doc.setTextColor(255, 255, 255);
-  doc.text(formatCurrency(subtotal, 'en-NG', data.currency), 191, sy + 11, { align: 'right' });
+  doc.text(formatPdfCurrency(subtotal, data.currency), 192, sy + 11, { align: 'right' });
   doc.setTextColor(160, 190, 235);
-  doc.text('Tax', 122, sy + 21);
+  doc.text('Tax', 114, sy + 21);
   doc.setTextColor(255, 255, 255);
-  doc.text(formatCurrency(tax, 'en-NG', data.currency), 191, sy + 21, { align: 'right' });
+  doc.text(formatPdfCurrency(tax, data.currency), 192, sy + 21, { align: 'right' });
   doc.setDrawColor(74, 105, 189);
   doc.setLineWidth(0.4);
-  doc.line(122, sy + 25, 191, sy + 25);
+  doc.line(114, sy + 25, 192, sy + 25);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(194, 231, 255);
-  doc.text('TOTAL DUE', 122, sy + 34);
+  doc.text('TOTAL DUE', 114, sy + 34);
   doc.setTextColor(255, 255, 255);
-  doc.text(formatCurrency(total, 'en-NG', data.currency), 191, sy + 34, { align: 'right' });
+  doc.text(formatPdfCurrency(total, data.currency), 192, sy + 34, { align: 'right' });
 
   // Signature
   const sigY = 242;

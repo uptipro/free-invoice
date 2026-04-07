@@ -24,6 +24,7 @@ function App() {
     dueDate: '',
     industry: '',
     currency: 'NGN',
+    tax: 0,
     notes: '',
     signerName: '',
     tagline: 'Create polished invoices in under a minute',
@@ -98,8 +99,8 @@ function App() {
         </div>
         <div className="right-side">
           <InvoicePreview invoice={invoice} items={items} signature={signature} logo={logo} />
-          <InvoiceSummary items={items} currency={invoice.currency} />
-          <ExportActions invoice={invoice} items={items} signature={signature} logo={logo} />
+          <InvoiceSummary items={items} currency={invoice.currency} tax={invoice.tax} />
+          <ExportActions invoice={invoice} items={items} signature={signature} logo={logo} tax={invoice.tax} />
         </div>
       </div>
     </>

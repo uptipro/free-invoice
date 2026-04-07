@@ -4,13 +4,15 @@ import { calculateLineTotal } from '../utils/calculations';
 import { downloadInvoicePdf, generateInvoicePdfDataUrl } from '../utils/invoiceGenerator';
 import PdfPreviewModal from './PdfPreviewModal';
 
-export default function ExportActions({ invoice, items, signature, logo }) {
+export default function ExportActions({ invoice, items, signature, logo, tax = 0 }) {
   const [template, setTemplate] = useState('template-1');
   const [previewOpen, setPreviewOpen] = useState(false);
   const [pdfDataUrl, setPdfDataUrl] = useState(null);
 
   const buildPdfData = () => {
     const subtotal = items.reduce((sum, item) => sum + calculateLineTotal(item.quantity, item.unitPrice), 0);
+    const taxRate = parseFloat(tax) || 0;
+    const taxAmount = subtotal * (taxRate / 100);
     return {
       companyName: invoice.senderCompanyName,
       companyAddress: invoice.senderCompanyAddress,
@@ -23,8 +25,8 @@ export default function ExportActions({ invoice, items, signature, logo }) {
       dueDate: invoice.dueDate,
       items,
       subtotal,
-      tax: 0,
-      total: subtotal,
+      tax: taxAmount,
+      total: subtotal + taxAmount,
       notes: invoice.notes,
       signature,
       signerName: invoice.signerName,

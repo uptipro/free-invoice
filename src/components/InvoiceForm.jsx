@@ -119,6 +119,18 @@ export default function InvoiceForm({ invoice, onChange, onLogoChange }) {
         />
       </label>
       <label>
+        Tax (%)
+        <input
+          name="tax"
+          value={invoice.tax ?? 0}
+          onChange={handleInput}
+          type="number"
+          min="0"
+          max="100"
+          step="0.01"
+        />
+      </label>
+      <label>
         Industry
         <select name="industry" value={invoice.industry} onChange={handleInput}>
           <option value="">-- select --</option>

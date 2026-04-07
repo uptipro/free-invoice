@@ -77,6 +77,41 @@
   color: #6b7280;
 }
 
+.privacy {
+  padding: 12px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  flex-shrink: 0;
+}
+
+.privacyLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.privacyCheckbox {
+  margin-top: 2px;
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  accent-color: #1e3563;
+  cursor: pointer;
+}
+
+.privacyLink {
+  color: #1e3563;
+  text-decoration: underline;
+}
+
+.privacyLink:hover {
+  color: #16295a;
+}
+
 .footer {
   display: flex;
   gap: 10px;
@@ -116,6 +151,11 @@
 
 .downloadBtn:hover {
   background: #16295a;
+}
+
+.downloadBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
 }
 
 @media (max-width: 600px) {

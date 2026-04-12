@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { calculateLineTotal } from '../utils/calculations';
 import { downloadInvoicePdf, generateInvoicePdfDataUrl } from '../utils/invoiceGenerator';
+import { storeInvoiceAfterDownload } from '../utils/invoiceApi';
 import PdfPreviewModal from './PdfPreviewModal';
 
 export default function ExportActions({ invoice, items, signature, logo, tax = 0 }) {
   const [template, setTemplate] = useState('template-1');
   const [previewOpen, setPreviewOpen] = useState(false);
   const [pdfDataUrl, setPdfDataUrl] = useState(null);
+  const [previewSession, setPreviewSession] = useState(0);
+  const [savingAfterDownload, setSavingAfterDownload] = useState(false);
 
   const buildPdfData = () => {
     const subtotal = items.reduce((sum, item) => sum + calculateLineTotal(item.quantity, item.unitPrice), 0);
@@ -41,12 +44,38 @@ export default function ExportActions({ invoice, items, signature, logo, tax = 0
   const handlePreviewPdf = () => {
     const dataUrl = generateInvoicePdfDataUrl(template, buildPdfData());
     setPdfDataUrl(dataUrl);
+    setPreviewSession((prev) => prev + 1);
     setPreviewOpen(true);
   };
 
-  const handleConfirmDownload = () => {
-    downloadInvoicePdf(template, buildPdfData());
-    setPreviewOpen(false);
+  const handleConfirmDownload = async ({ privacyPolicyAccepted }) => {
+    const pdfData = buildPdfData();
+    downloadInvoicePdf(template, pdfData);
+
+    if (!privacyPolicyAccepted) {
+      return;
+    }
+
+    try {
+      setSavingAfterDownload(true);
+      await storeInvoiceAfterDownload({
+        invoiceNumber: pdfData.invoiceNumber,
+        clientEmail: pdfData.clientEmail,
+        senderCompanyName: pdfData.companyName,
+        total: pdfData.total,
+        currency: pdfData.currency,
+        template,
+        privacyPolicyAccepted,
+        downloadedAt: new Date().toISOString(),
+        payload: pdfData,
+      });
+      setPreviewOpen(false);
+    } catch (error) {
+      // Keep the modal open so the user can retry if storing fails.
+      alert(error.message || 'Invoice downloaded, but storing in database failed.');
+    } finally {
+      setSavingAfterDownload(false);
+    }
   };
 
   const downloadExcel = () => {
@@ -83,7 +112,9 @@ export default function ExportActions({ invoice, items, signature, logo, tax = 0
       </label>
       <button onClick={handlePreviewPdf}>Download PDF</button>
       <button onClick={downloadExcel}>Download Excel</button>
+      {savingAfterDownload && <p>Saving invoice for future reference...</p>}
       <PdfPreviewModal
+        key={previewSession}
         isOpen={previewOpen}
         pdfDataUrl={pdfDataUrl}
         onClose={() => setPreviewOpen(false)}

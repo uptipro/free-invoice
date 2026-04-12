@@ -1,13 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styles from './PdfPreviewModal.module.css';
 
 export default function PdfPreviewModal({ isOpen, pdfDataUrl, onClose, onDownload }) {
   const [agreed, setAgreed] = useState(false);
-
-  // Reset checkbox each time the modal opens
-  useEffect(() => {
-    if (isOpen) setAgreed(false);
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -52,7 +47,7 @@ export default function PdfPreviewModal({ isOpen, pdfDataUrl, onClose, onDownloa
           <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
           <button
             className={styles.downloadBtn}
-            onClick={onDownload}
+            onClick={() => onDownload({ privacyPolicyAccepted: agreed })}
             disabled={!agreed}
             title={!agreed ? 'Please accept the privacy policy to download' : ''}
           >

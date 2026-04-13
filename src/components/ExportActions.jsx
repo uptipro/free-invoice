@@ -1,19 +1,34 @@
-import React, { useState } from 'react';
-import * as XLSX from 'xlsx';
-import { calculateLineTotal } from '../utils/calculations';
-import { downloadInvoicePdf, generateInvoicePdfDataUrl } from '../utils/invoiceGenerator';
-import { storeInvoiceAfterDownload } from '../utils/invoiceApi';
-import PdfPreviewModal from './PdfPreviewModal';
+import React, { useState } from "react";
+import * as XLSX from "xlsx";
+import { calculateLineTotal } from "../utils/calculations";
+import {
+  downloadInvoicePdf,
+  generateInvoicePdfDataUrl,
+  generateInvoiceNumber,
+} from "../utils/invoiceGenerator";
+import { storeInvoiceAfterDownload } from "../utils/invoiceApi";
+import PdfPreviewModal from "./PdfPreviewModal";
 
-export default function ExportActions({ invoice, items, signature, logo, tax = 0 }) {
-  const [template, setTemplate] = useState('template-1');
+export default function ExportActions({
+  invoice,
+  items,
+  signature,
+  logo,
+  tax = 0,
+  onSaved,
+  onInvoiceNumberUsed,
+}) {
+  const [template, setTemplate] = useState("template-1");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [pdfDataUrl, setPdfDataUrl] = useState(null);
   const [previewSession, setPreviewSession] = useState(0);
   const [savingAfterDownload, setSavingAfterDownload] = useState(false);
 
   const buildPdfData = () => {
-    const subtotal = items.reduce((sum, item) => sum + calculateLineTotal(item.quantity, item.unitPrice), 0);
+    const subtotal = items.reduce(
+      (sum, item) => sum + calculateLineTotal(item.quantity, item.unitPrice),
+      0,
+    );
     const taxRate = parseFloat(tax) || 0;
     const taxAmount = subtotal * (taxRate / 100);
     return {
@@ -49,6 +64,8 @@ export default function ExportActions({ invoice, items, signature, logo, tax = 0
   };
 
   const handleConfirmDownload = async ({ privacyPolicyAccepted }) => {
+    const newInternalNumber = generateInvoiceNumber();
+    onInvoiceNumberUsed?.(newInternalNumber);
     const pdfData = buildPdfData();
     downloadInvoicePdf(template, pdfData);
 
@@ -69,10 +86,13 @@ export default function ExportActions({ invoice, items, signature, logo, tax = 0
         downloadedAt: new Date().toISOString(),
         payload: pdfData,
       });
+      onSaved?.();
       setPreviewOpen(false);
     } catch (error) {
       // Keep the modal open so the user can retry if storing fails.
-      alert(error.message || 'Invoice downloaded, but storing in database failed.');
+      alert(
+        error.message || "Invoice downloaded, but storing in database failed.",
+      );
     } finally {
       setSavingAfterDownload(false);
     }
@@ -80,23 +100,37 @@ export default function ExportActions({ invoice, items, signature, logo, tax = 0
 
   const downloadExcel = () => {
     const wsData = [
-      ['Internal Invoice Count', invoice.internalNumber],
-      ['Invoice ID', invoice.number],
-      ['Sender Company', invoice.senderCompanyName],
-      ['Sender Address', invoice.senderCompanyAddress],
-      ['Client Name', invoice.clientName],
-      ['Receiver Company', invoice.clientCompanyName],
-      ['Client Email', invoice.clientEmail],
-      ['Currency', invoice.currency],
+      ["Internal Invoice Count", invoice.internalNumber],
+      ["Invoice ID", invoice.number],
+      ["Sender Company", invoice.senderCompanyName],
+      ["Sender Address", invoice.senderCompanyAddress],
+      ["Client Name", invoice.clientName],
+      ["Receiver Company", invoice.clientCompanyName],
+      ["Client Email", invoice.clientEmail],
+      ["Currency", invoice.currency],
       [],
-      ['Description', 'Quantity', 'Unit Price', 'Total'],
-      ...items.map((i) => [i.description, i.quantity, i.unitPrice, calculateLineTotal(i.quantity, i.unitPrice)]),
+      ["Description", "Quantity", "Unit Price", "Total"],
+      ...items.map((i) => [
+        i.description,
+        i.quantity,
+        i.unitPrice,
+        calculateLineTotal(i.quantity, i.unitPrice),
+      ]),
       [],
-      ['Grand Total', '', '', items.reduce((sum, item) => sum + calculateLineTotal(item.quantity, item.unitPrice), 0)],
+      [
+        "Grand Total",
+        "",
+        "",
+        items.reduce(
+          (sum, item) =>
+            sum + calculateLineTotal(item.quantity, item.unitPrice),
+          0,
+        ),
+      ],
     ];
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Invoice');
+    XLSX.utils.book_append_sheet(wb, ws, "Invoice");
     XLSX.writeFile(wb, `invoice-${invoice.number}.xlsx`);
   };
 
@@ -104,7 +138,10 @@ export default function ExportActions({ invoice, items, signature, logo, tax = 0
     <div className="export-actions">
       <label>
         PDF Template
-        <select value={template} onChange={(event) => setTemplate(event.target.value)}>
+        <select
+          value={template}
+          onChange={(event) => setTemplate(event.target.value)}
+        >
           <option value="template-1">Template 1: Corporate</option>
           <option value="template-2">Template 2: Monochrome</option>
           <option value="template-3">Template 3: Creative</option>

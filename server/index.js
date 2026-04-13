@@ -6,12 +6,24 @@ import { getPersistenceMode, initDb, saveInvoice, getInvoices } from "./db.js";
 const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
 
-const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173")
-  .split(",")
-  .map((o) => o.trim());
+const defaultOrigins = [
+  "http://localhost:5173",
+  "https://freeinvoice.buyops.ng",
+  "https://admin.buyops.ng",
+  "https://buyops-admin.vercel.app",
+];
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
+  : defaultOrigins;
 app.use(
   cors({
-    origin: allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, origin || "*");
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
   }),
 );
 app.use(express.json({ limit: "2mb" }));

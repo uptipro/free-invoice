@@ -40,11 +40,9 @@ app.post("/api/invoices", async (req, res) => {
   } = req.body || {};
 
   if (!privacyPolicyAccepted) {
-    return res
-      .status(400)
-      .json({
-        message: "Privacy policy must be accepted before storing invoice data.",
-      });
+    return res.status(400).json({
+      message: "Privacy policy must be accepted before storing invoice data.",
+    });
   }
 
   if (!invoiceNumber || !currency || !template || !payload) {
@@ -84,7 +82,15 @@ async function start() {
   });
 }
 
-start().catch((error) => {
-  console.error("Failed to start API server", error);
-  process.exit(1);
-});
+// Export the app for Vercel serverless
+export default app;
+
+// Only start the HTTP server when executed directly (local dev)
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+if (process.argv[1] === __filename) {
+  start().catch((error) => {
+    console.error("Failed to start API server", error);
+    process.exit(1);
+  });
+}

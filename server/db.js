@@ -1,9 +1,10 @@
-import pg from 'pg';
-import { createClient } from '@supabase/supabase-js';
+import pg from "pg";
+import { createClient } from "@supabase/supabase-js";
 
 const { Pool } = pg;
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseUrl =
+  process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.SUPABASE_PUBLISHABLE_KEY ||
@@ -21,20 +22,26 @@ const supabase = useSupabaseApi
 
 function parseBoolean(value, fallback = false) {
   if (value == null) return fallback;
-  return String(value).toLowerCase() === 'true';
+  return String(value).toLowerCase() === "true";
 }
 
 function buildPoolConfig() {
-  const useSsl = parseBoolean(process.env.DB_SSL, Boolean(process.env.DATABASE_URL));
-  const rejectUnauthorized = parseBoolean(process.env.DB_SSL_REJECT_UNAUTHORIZED, false);
+  const useSsl = parseBoolean(
+    process.env.DB_SSL,
+    Boolean(process.env.DATABASE_URL),
+  );
+  const rejectUnauthorized = parseBoolean(
+    process.env.DB_SSL_REJECT_UNAUTHORIZED,
+    false,
+  );
 
   return {
     connectionString: process.env.DATABASE_URL,
-    host: process.env.PGHOST || 'localhost',
+    host: process.env.PGHOST || "localhost",
     port: process.env.PGPORT ? Number(process.env.PGPORT) : 5432,
-    user: process.env.PGUSER || 'postgres',
-    password: process.env.PGPASSWORD || 'postgres',
-    database: process.env.PGDATABASE || 'free_invoice',
+    user: process.env.PGUSER || "postgres",
+    password: process.env.PGPASSWORD || "postgres",
+    database: process.env.PGDATABASE || "free_invoice",
     ssl: useSsl ? { rejectUnauthorized } : false,
   };
 }
@@ -42,7 +49,7 @@ function buildPoolConfig() {
 const pool = useSupabaseApi ? null : new Pool(buildPoolConfig());
 
 export function getPersistenceMode() {
-  return useSupabaseApi ? 'supabase-api' : 'postgres';
+  return useSupabaseApi ? "supabase-api" : "postgres";
 }
 
 export async function initDb() {
@@ -68,7 +75,7 @@ export async function initDb() {
 export async function saveInvoice(invoiceRecord) {
   if (useSupabaseApi) {
     const { data, error } = await supabase
-      .from('invoices')
+      .from("invoices")
       .insert({
         invoice_number: invoiceRecord.invoiceNumber,
         client_email: invoiceRecord.clientEmail,
@@ -80,11 +87,11 @@ export async function saveInvoice(invoiceRecord) {
         downloaded_at: invoiceRecord.downloadedAt,
         payload: invoiceRecord.payload,
       })
-      .select('id, created_at')
+      .select("id, created_at")
       .single();
 
     if (error) {
-      throw new Error(error.message || 'Supabase insert failed.');
+      throw new Error(error.message || "Supabase insert failed.");
     }
 
     return data;
@@ -120,4 +127,38 @@ export async function saveInvoice(invoiceRecord) {
 
   const result = await pool.query(query, values);
   return result.rows[0];
+}
+
+export async function getInvoices({ page = 1, limit = 20 } = {}) {
+  const offset = (page - 1) * limit;
+
+  if (useSupabaseApi) {
+    const { data, error, count } = await supabase
+      .from("invoices")
+      .select(
+        "id, invoice_number, client_email, sender_company_name, total, currency, template, privacy_policy_accepted, downloaded_at, created_at",
+        { count: "exact" },
+      )
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      throw new Error(error.message || "Supabase query failed.");
+    }
+
+    return { invoices: data, total: count };
+  }
+
+  const [rowsResult, countResult] = await Promise.all([
+    pool.query(
+      `SELECT id, invoice_number, client_email, sender_company_name, total, currency, template, privacy_policy_accepted, downloaded_at, created_at
+       FROM invoices
+       ORDER BY created_at DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset],
+    ),
+    pool.query(`SELECT COUNT(*)::int AS total FROM invoices`),
+  ]);
+
+  return { invoices: rowsResult.rows, total: countResult.rows[0].total };
 }

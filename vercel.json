@@ -7,10 +7,8 @@
       "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     }
   ],
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index"
-    }
-  ]
+  "rewrites": [{ 
+    "source": "/api/(.*)", 
+    "destination": "/api/index" 
+  }]
 }

@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import Header from "./components/Header";
+import ProfileSetup from "./components/ProfileSetup";
 import InvoiceForm from "./components/InvoiceForm";
 import InvoiceTable from "./components/InvoiceTable";
 import InvoiceSummary from "./components/InvoiceSummary";
 import SignaturePad from "./components/SignaturePad";
 import InvoicePreview from "./components/InvoicePreview";
+import { useCallback } from "react";
 import ExportActions from "./components/ExportActions";
 import {
   generateInvoiceNumber,
@@ -14,6 +16,15 @@ import {
 import { getInvoices } from "./utils/invoiceApi";
 
 function App() {
+  // Profile gating state
+  const [profile, setProfile] = useState(() => {
+    try {
+      const stored = localStorage.getItem("profileId");
+      return stored ? { id: stored } : null;
+    } catch {
+      return null;
+    }
+  });
   const [invoice, setInvoice] = useState({
     internalNumber: `INV-${String(peekInvoiceCount()).padStart(4, "0")}`,
     number: "INV-001",
@@ -93,9 +104,25 @@ function App() {
 
   const invoiceCount = parseInt(invoice.internalNumber.replace("INV-", ""), 10);
 
+  // Profile gating: show ProfileSetup if not set
+  if (!profile) {
+    return (
+      <div className="profile-setup-gate">
+        <ProfileSetup
+          onSave={(p) => {
+            setProfile(p);
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <>
-      <Header invoiceCount={totalInvoices ?? invoiceCount} />
+      <Header
+        invoiceCount={totalInvoices ?? invoiceCount}
+        profileId={profile.id}
+      />
       <div className="main-container">
         <div className="left-side">
           <InvoiceForm
@@ -127,6 +154,7 @@ function App() {
             items={items}
             signature={signature}
             logo={logo}
+            profileId={profile.id}
           />
           <InvoiceSummary
             items={items}

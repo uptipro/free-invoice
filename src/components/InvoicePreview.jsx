@@ -1,33 +1,54 @@
-import React from 'react';
-import { formatCurrency, calculateLineTotal } from '../utils/calculations';
+import React from "react";
+import { formatCurrency, calculateLineTotal } from "../utils/calculations";
+import NegotiationPanel from "./NegotiationPanel";
 
-export default function InvoicePreview({ invoice, items, signature, logo }) {
+export default function InvoicePreview({
+  invoice,
+  items,
+  signature,
+  logo,
+  profileId,
+}) {
   const total = items.reduce(
     (sum, i) => sum + calculateLineTotal(i.quantity, i.unitPrice),
-    0
+    0,
   );
+
+  // Determine if the current profile is the invoice owner
+  const isOwner =
+    profileId &&
+    invoice.senderEmail &&
+    localStorage.getItem("profileId") === profileId;
 
   return (
     <div className="invoice-preview">
-      {logo && <img src={logo} alt="Company logo" style={{ maxWidth: 120, marginBottom: 12 }} />}
+      {logo && (
+        <img
+          src={logo}
+          alt="Company logo"
+          style={{ maxWidth: 120, marginBottom: 12 }}
+        />
+      )}
       <h2>Invoice {invoice.number}</h2>
       <p>
-        <strong>Sender:</strong> {invoice.senderCompanyName || '-'}
+        <strong>Sender:</strong> {invoice.senderCompanyName || "-"}
       </p>
       <p>
-        <strong>Sender Address:</strong> {invoice.senderCompanyAddress || '-'}
+        <strong>Sender Address:</strong> {invoice.senderCompanyAddress || "-"}
       </p>
       <p>
-        <strong>Sender Email:</strong> {invoice.senderEmail || '-'}
+        <strong>Sender Email:</strong> {invoice.senderEmail || "-"}
       </p>
       <p>
-        <strong>Client:</strong> {invoice.clientName || '-'} ({invoice.clientEmail || '-'})
+        <strong>Client:</strong> {invoice.clientName || "-"} (
+        {invoice.clientEmail || "-"})
       </p>
       <p>
-        <strong>Receiver Company:</strong> {invoice.clientCompanyName || '-'}
+        <strong>Receiver Company:</strong> {invoice.clientCompanyName || "-"}
       </p>
       <p>
-        <strong>Date:</strong> {invoice.date} <strong>Due:</strong> {invoice.dueDate}
+        <strong>Date:</strong> {invoice.date} <strong>Due:</strong>{" "}
+        {invoice.dueDate}
       </p>
       <table className="table">
         <thead>
@@ -43,13 +64,21 @@ export default function InvoicePreview({ invoice, items, signature, logo }) {
             <tr key={idx}>
               <td>{item.description}</td>
               <td>{item.quantity}</td>
-              <td>{formatCurrency(item.unitPrice, 'en-NG', invoice.currency)}</td>
-              <td>{formatCurrency(calculateLineTotal(item.quantity, item.unitPrice), 'en-NG', invoice.currency)}</td>
+              <td>
+                {formatCurrency(item.unitPrice, "en-NG", invoice.currency)}
+              </td>
+              <td>
+                {formatCurrency(
+                  calculateLineTotal(item.quantity, item.unitPrice),
+                  "en-NG",
+                  invoice.currency,
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <h3>{formatCurrency(total, 'en-NG', invoice.currency)}</h3>
+      <h3>{formatCurrency(total, "en-NG", invoice.currency)}</h3>
       {invoice.notes && (
         <p className="note-field">
           <strong>Notes:</strong> {invoice.notes}
@@ -57,9 +86,20 @@ export default function InvoicePreview({ invoice, items, signature, logo }) {
       )}
       {signature && (
         <div>
-          <img src={signature} alt="Signature" style={{ maxWidth: '100%' }} />
-          <p><strong>Signed by:</strong> {invoice.signerName || '-'}</p>
+          <img src={signature} alt="Signature" style={{ maxWidth: "100%" }} />
+          <p>
+            <strong>Signed by:</strong> {invoice.signerName || "-"}
+          </p>
         </div>
+      )}
+
+      {/* NegotiationPanel integration */}
+      {profileId && invoice.number && (
+        <NegotiationPanel
+          invoiceId={invoice.number}
+          profileId={profileId}
+          isOwner={isOwner}
+        />
       )}
     </div>
   );

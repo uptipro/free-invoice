@@ -2,6 +2,9 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { getPersistenceMode, initDb, saveInvoice, getInvoices } from "./db.js";
+import profileRoutes from "./routes/profiles.js";
+import negotiationRoutes from "./routes/negotiations.js";
+import notificationRoutes from "./routes/notifications.js";
 
 const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
@@ -78,6 +81,10 @@ app.post("/api/invoices", async (req, res) => {
     return res.status(500).json({ message: "Failed to save invoice." });
   }
 });
+
+app.use("/api/profile", profileRoutes);
+app.use("/api/negotiate", negotiationRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 async function start() {
   await initDb();

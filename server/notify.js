@@ -1,5 +1,5 @@
-const { supabase } = require("./db");
-const nodemailer = require("nodemailer");
+import { supabase } from "./db.js";
+import nodemailer from "nodemailer";
 
 const mailer = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -7,20 +7,18 @@ const mailer = nodemailer.createTransport({
   auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
 });
 
-async function notifyProfiles(profileIds, invoiceId, type, message) {
+export async function notifyProfiles(profileIds, invoiceId, type, message) {
   if (!profileIds?.length) return;
 
   // Insert in-app notifications
-  await supabase
-    .from("notifications")
-    .insert(
-      profileIds.map((profile_id) => ({
-        profile_id,
-        invoice_id: invoiceId,
-        type,
-        message,
-      })),
-    );
+  await supabase.from("notifications").insert(
+    profileIds.map((profile_id) => ({
+      profile_id,
+      invoice_id: invoiceId,
+      type,
+      message,
+    })),
+  );
 
   // Send emails if SMTP configured
   if (!process.env.SMTP_HOST) return;
@@ -32,10 +30,8 @@ async function notifyProfiles(profileIds, invoiceId, type, message) {
     await mailer.sendMail({
       from: process.env.SMTP_FROM || "invoices@yourdomain.com",
       to: p.email,
-      subject: `Upti Invoice — ${type.replace("_", " ")}`,
+      subject: `Upti Invoice  ${type.replace("_", " ")}`,
       text: `Hi ${p.name},\n\n${message}\n\nLog in to view details.`,
     });
   }
 }
-
-module.exports = { notifyProfiles };

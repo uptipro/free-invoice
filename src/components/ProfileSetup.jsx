@@ -26,39 +26,95 @@ export default function ProfileSetup({ onSave }) {
   }
 
   return (
-    <div className="profile-setup">
-      <h2>Set up your profile</h2>
-      <select
-        value={form.role}
-        onChange={(e) => setForm({ ...form, role: e.target.value })}
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "var(--color-bg)",
+        padding: 16,
+      }}
+    >
+      <form
+        className="profile-setup-card"
+        style={{
+          width: "100%",
+          maxWidth: 400,
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-grey-light)",
+          borderRadius: 20,
+          boxShadow: "var(--shadow-soft)",
+          padding: 32,
+          display: "flex",
+          flexDirection: "column",
+          gap: 18,
+        }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
       >
-        <option value="buyer">Buyer (Procurement)</option>
-        <option value="supplier">Supplier</option>
-        <option value="contractor">Contractor</option>
-      </select>
-      <input
-        placeholder="Full name"
-        value={form.name}
-        onChange={(e) => setForm({ ...form, name: e.target.value })}
-      />
-      <input
-        placeholder="Email"
-        value={form.email}
-        onChange={(e) => setForm({ ...form, email: e.target.value })}
-      />
-      <input
-        placeholder="Company"
-        value={form.company}
-        onChange={(e) => setForm({ ...form, company: e.target.value })}
-      />
-      <input
-        placeholder="Phone"
-        value={form.phone}
-        onChange={(e) => setForm({ ...form, phone: e.target.value })}
-      />
-      <button onClick={handleSubmit} disabled={saving}>
-        {saving ? "Saving…" : "Save profile"}
-      </button>
+        <h2 style={{ textAlign: "center", marginBottom: 18 }}>
+          Set up your profile
+        </h2>
+        <label>
+          Role
+          <select
+            value={form.role}
+            onChange={(e) => setForm({ ...form, role: e.target.value })}
+            style={{ marginTop: 4 }}
+          >
+            <option value="buyer">Buyer (Procurement)</option>
+            <option value="supplier">Supplier</option>
+            <option value="contractor">Contractor</option>
+          </select>
+        </label>
+        <label>
+          Full name
+          <input
+            placeholder="Full name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+            style={{ marginTop: 4 }}
+          />
+        </label>
+        <label>
+          Email
+          <input
+            placeholder="Email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            required
+            type="email"
+            style={{ marginTop: 4 }}
+          />
+        </label>
+        <label>
+          Company
+          <input
+            placeholder="Company"
+            value={form.company}
+            onChange={(e) => setForm({ ...form, company: e.target.value })}
+            required
+            style={{ marginTop: 4 }}
+          />
+        </label>
+        <label>
+          Phone
+          <input
+            placeholder="Phone"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            required
+            style={{ marginTop: 4 }}
+          />
+        </label>
+        <button type="submit" disabled={saving} style={{ marginTop: 18 }}>
+          {saving ? "Saving…" : "Save profile"}
+        </button>
+      </form>
     </div>
   );
 }

@@ -1,7 +1,7 @@
-const express = require("express");
+import express from "express";
+import { supabase } from "../db.js";
+import { notifyProfiles } from "../notify.js";
 const router = express.Router();
-const { supabase } = require("../db");
-const { notifyProfiles } = require("../notify");
 
 // Supplier submits a counter-offer
 router.post("/", async (req, res) => {
@@ -92,4 +92,4 @@ router.patch("/:id/reject", async (req, res) => {
   res.json(neg);
 });
 
-module.exports = router;
+export default router;

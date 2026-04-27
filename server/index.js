@@ -3,8 +3,8 @@ import express from "express";
 import cors from "cors";
 import { getPersistenceMode, initDb, saveInvoice, getInvoices } from "./db.js";
 import profileRoutes from "./routes/profiles.js";
-import negotiationRoutes from "./routes/negotiations.js";
 import notificationRoutes from "./routes/notifications.js";
+import negotiationRoutes from "./routes/negotiations.js";
 
 const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;

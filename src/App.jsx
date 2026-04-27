@@ -18,13 +18,10 @@ import { getInvoices } from "./utils/invoiceApi";
 function App() {
   // Profile gating state
   const [profile, setProfile] = useState(() => {
-    try {
-      const stored = localStorage.getItem("profileId");
-      return stored ? { id: stored } : null;
-    } catch {
-      return null;
-    }
+    const id = localStorage.getItem("profileId");
+    return id ? { id } : null;
   });
+
   const [invoice, setInvoice] = useState({
     internalNumber: `INV-${String(peekInvoiceCount()).padStart(4, "0")}`,
     number: "INV-001",
@@ -121,7 +118,7 @@ function App() {
     <>
       <Header
         invoiceCount={totalInvoices ?? invoiceCount}
-        profileId={profile.id}
+        profileId={profile?.id}
       />
       <div className="main-container">
         <div className="left-side">

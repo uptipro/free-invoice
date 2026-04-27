@@ -102,13 +102,14 @@ export default function ProfileSetup({ onSave }) {
           />
         </label>
         <label>
-          Phone
+          WhatsApp Phone Number
           <input
-            placeholder="Phone"
+            placeholder="WhatsApp number (e.g. +2348012345678)"
             value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
             required
             style={{ marginTop: 4 }}
+            type="tel"
           />
         </label>
         <button type="submit" disabled={saving} style={{ marginTop: 18 }}>

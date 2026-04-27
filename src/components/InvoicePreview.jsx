@@ -96,7 +96,7 @@ export default function InvoicePreview({
       {/* NegotiationPanel integration */}
       {profileId && invoice.number && (
         <NegotiationPanel
-          invoiceId={invoice.number}
+          invoiceId={invoice.invoice_number}
           profileId={profileId}
           isOwner={isOwner}
         />

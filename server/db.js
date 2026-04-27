@@ -1,3 +1,4 @@
+export { supabase };
 import pg from "pg";
 import { createClient } from "@supabase/supabase-js";
 

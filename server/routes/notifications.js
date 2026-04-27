@@ -1,6 +1,6 @@
-const express = require("express");
+import express from "express";
+import { supabase } from "../db.js";
 const router = express.Router();
-const { supabase } = require("../db");
 
 router.get("/:profileId", async (req, res) => {
   const { data, error } = await supabase
@@ -24,4 +24,4 @@ router.patch("/:id/read", async (req, res) => {
   res.json(data);
 });
 
-module.exports = router;
+export default router;

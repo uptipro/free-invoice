@@ -1,6 +1,6 @@
-const express = require("express");
+import express from "express";
+import { supabase } from "../db.js";
 const router = express.Router();
-const { supabase } = require("../db");
 
 router.post("/", async (req, res) => {
   const { email, name, company, phone, role } = req.body;
@@ -34,4 +34,4 @@ router.patch("/:id", async (req, res) => {
   res.json(data);
 });
 
-module.exports = router;
+export default router;

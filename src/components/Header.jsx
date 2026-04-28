@@ -4,7 +4,12 @@ import appLogo from "../assets/logo/free invoice logo.png";
 import NotificationBell from "./NotificationBell";
 import { supabase } from "../utils/supabaseClient";
 
-export default function Header({ invoiceCount, profileId }) {
+export default function Header({
+  invoiceCount,
+  profileId,
+  onLogin,
+  onCreateProfile,
+}) {
   async function handleLogout() {
     await supabase.auth.signOut();
     localStorage.removeItem("profileId");
@@ -26,9 +31,9 @@ export default function Header({ invoiceCount, profileId }) {
           <span className={styles.counterNumber}>{invoiceCount}</span>
           <span className={styles.counterLabel}>Invoices Created</span>
         </div>
-        {profileId && <NotificationBell profileId={profileId} />}
-        {profileId && (
+        {profileId ? (
           <>
+            <NotificationBell profileId={profileId} />
             <button
               onClick={handleWhatsAppShare}
               style={{
@@ -54,10 +59,43 @@ export default function Header({ invoiceCount, profileId }) {
                 background: "#fff",
                 fontWeight: 600,
                 cursor: "pointer",
-                color: "black"
+                color: "black",
               }}
             >
               Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={onLogin}
+              style={{
+                marginLeft: 16,
+                padding: "8px 18px",
+                borderRadius: 6,
+                border: "1px solid #007bff",
+                background: "#007bff",
+                color: "#fff",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Login
+            </button>
+            <button
+              onClick={onCreateProfile}
+              style={{
+                marginLeft: 8,
+                padding: "8px 18px",
+                borderRadius: 6,
+                border: "1px solid #00b894",
+                background: "#00b894",
+                color: "#fff",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Create Profile
             </button>
           </>
         )}

@@ -16,11 +16,14 @@ import {
 import { getInvoices } from "./utils/invoiceApi";
 
 function App() {
-  // Profile gating state
+  // Profile state
   const [profile, setProfile] = useState(() => {
     const id = localStorage.getItem("profileId");
     return id ? { id } : null;
   });
+  // Modal state
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   const [invoice, setInvoice] = useState({
     internalNumber: `INV-${String(peekInvoiceCount()).padStart(4, "0")}`,
@@ -101,17 +104,15 @@ function App() {
 
   const invoiceCount = parseInt(invoice.internalNumber.replace("INV-", ""), 10);
 
-  // Profile gating: show ProfileSetup if not set
-  if (!profile) {
-    return (
-      <div className="profile-setup-gate">
-        <ProfileSetup
-          onSave={(p) => {
-            setProfile(p);
-          }}
-        />
-      </div>
-    );
+  // Simple login logic (for demo: just ask for profileId)
+  function handleLoginSubmit(e) {
+    e.preventDefault();
+    const id = e.target.elements.profileId.value.trim();
+    if (id) {
+      localStorage.setItem("profileId", id);
+      setProfile({ id });
+      setShowLogin(false);
+    }
   }
 
   return (
@@ -119,7 +120,129 @@ function App() {
       <Header
         invoiceCount={totalInvoices ?? invoiceCount}
         profileId={profile?.id}
+        onLogin={() => setShowLogin(true)}
+        onCreateProfile={() => setShowProfileSetup(true)}
       />
+
+      {/* Login Modal */}
+      {showLogin && (
+        <div
+          className="modal-overlay"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.3)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: 32,
+              borderRadius: 12,
+              minWidth: 320,
+              boxShadow: "0 2px 16px #0002",
+            }}
+          >
+            <h2>Login</h2>
+            <form
+              onSubmit={handleLoginSubmit}
+              style={{ display: "flex", flexDirection: "column", gap: 12 }}
+            >
+              <input
+                name="profileId"
+                placeholder="Enter your Profile ID"
+                required
+                style={{ padding: 8 }}
+              />
+              <button
+                type="submit"
+                style={{
+                  padding: 8,
+                  background: "#007bff",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 6,
+                }}
+              >
+                Login
+              </button>
+            </form>
+            <div style={{ marginTop: 16 }}>
+              <span>Don't have a profile? </span>
+              <button
+                onClick={() => {
+                  setShowLogin(false);
+                  setShowProfileSetup(true);
+                }}
+                style={{
+                  color: "#00b894",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Register
+              </button>
+            </div>
+            <button
+              onClick={() => setShowLogin(false)}
+              style={{ marginTop: 16 }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Setup Modal */}
+      {showProfileSetup && (
+        <div
+          className="modal-overlay"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.3)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: 32,
+              borderRadius: 12,
+              minWidth: 320,
+              boxShadow: "0 2px 16px #0002",
+            }}
+          >
+            <ProfileSetup
+              onSave={(p) => {
+                setProfile(p);
+                setShowProfileSetup(false);
+              }}
+            />
+            <button
+              onClick={() => setShowProfileSetup(false)}
+              style={{ marginTop: 16 }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="main-container">
         <div className="left-side">
           <InvoiceForm
@@ -151,7 +274,7 @@ function App() {
             items={items}
             signature={signature}
             logo={logo}
-            profileId={profile.id}
+            profileId={profile?.id}
           />
           <InvoiceSummary
             items={items}

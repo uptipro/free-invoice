@@ -87,6 +87,8 @@ export async function saveInvoice(invoiceRecord) {
         privacy_policy_accepted: invoiceRecord.privacyPolicyAccepted,
         downloaded_at: invoiceRecord.downloadedAt,
         payload: invoiceRecord.payload,
+        profile_id: invoiceRecord.profileId || null,
+        sender_phone: invoiceRecord.senderPhone || null,
       })
       .select("id, created_at")
       .single();
@@ -108,9 +110,11 @@ export async function saveInvoice(invoiceRecord) {
       template,
       privacy_policy_accepted,
       downloaded_at,
-      payload
+      payload,
+      profile_id,
+      sender_phone
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING id, created_at
   `;
 
@@ -124,6 +128,8 @@ export async function saveInvoice(invoiceRecord) {
     invoiceRecord.privacyPolicyAccepted,
     invoiceRecord.downloadedAt,
     invoiceRecord.payload,
+    invoiceRecord.profileId || null,
+    invoiceRecord.senderPhone || null,
   ];
 
   const result = await pool.query(query, values);

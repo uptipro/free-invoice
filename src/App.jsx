@@ -1,26 +1,22 @@
 import { useState, useRef, useEffect } from "react";
-import Header from "./components/Header";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
 import InvoiceForm from "./components/InvoiceForm";
 import InvoiceTable from "./components/InvoiceTable";
 import InvoiceSummary from "./components/InvoiceSummary";
 import SignaturePad from "./components/SignaturePad";
 import InvoicePreview from "./components/InvoicePreview";
-import { useCallback } from "react";
 import ExportActions from "./components/ExportActions";
-import {
-  generateInvoiceNumber,
-  peekInvoiceCount,
-  recordInvoiceData,
-} from "./utils/invoiceGenerator";
+import { peekInvoiceCount, recordInvoiceData } from "./utils/invoiceGenerator";
+import RegisterPage from "./pages/RegisterPage";
 import { getInvoices } from "./utils/invoiceApi";
 
 function App() {
-  // Profile state
+  // Profile state – stores full profile object
   const [profile, setProfile] = useState(() => {
-    const id = localStorage.getItem("profileId");
-    return id ? { id } : null;
+    try {
+      return JSON.parse(localStorage.getItem("profile") || "null");
+    } catch {
+      return null;
+    }
   });
   // Page state
   const [page, setPage] = useState("main"); // 'main', 'login', 'register'
@@ -104,16 +100,23 @@ function App() {
 
   const invoiceCount = parseInt(invoice.internalNumber.replace("INV-", ""), 10);
 
-  // Login handler for LoginPage
-  function handleLogin(profileId) {
-    localStorage.setItem("profileId", profileId);
-    setProfile({ id: profileId });
+  // Login handler – receives full profile object
+  function handleLogin(profileObj) {
+    localStorage.setItem("profile", JSON.stringify(profileObj));
+    setProfile(profileObj);
     setPage("main");
   }
 
-  // Register handler for RegisterPage
-  function handleRegister(profile) {
-    setProfile(profile);
+  // Register handler
+  function handleRegister(profileObj) {
+    localStorage.setItem("profile", JSON.stringify(profileObj));
+    setProfile(profileObj);
+    setPage("main");
+  }
+
+  // Guest handler – skip auth
+  function handleGuest() {
+    setProfile(null);
     setPage("main");
   }
 
@@ -121,10 +124,19 @@ function App() {
   let content;
   if (page === "login") {
     content = (
-      <LoginPage onLogin={handleLogin} onRegister={() => setPage("register")} />
+      <LoginPage
+        onLogin={handleLogin}
+        onRegister={() => setPage("register")}
+        onGuest={handleGuest}
+      />
     );
   } else if (page === "register") {
-    content = <RegisterPage onRegister={handleRegister} />;
+    content = (
+      <RegisterPage
+        onRegister={handleRegister}
+        onLogin={() => setPage("login")}
+      />
+    );
   } else {
     content = (
       <div className="main-container">
@@ -171,7 +183,9 @@ function App() {
             signature={signature}
             logo={logo}
             tax={invoice.tax}
+            profile={profile}
             onSaved={refreshInvoiceCount}
+            onLogin={() => setPage("login")}
             onInvoiceNumberUsed={(num) =>
               setInvoice((prev) => ({ ...prev, internalNumber: num }))
             }
@@ -185,9 +199,13 @@ function App() {
     <>
       <Header
         invoiceCount={totalInvoices ?? invoiceCount}
-        profileId={profile?.id}
+        profile={profile}
         onLogin={() => setPage("login")}
         onCreateProfile={() => setPage("register")}
+        onLogout={() => {
+          localStorage.removeItem("profile");
+          setProfile(null);
+        }}
       />
       {content}
     </>

@@ -15,7 +15,9 @@ export default function ExportActions({
   signature,
   logo,
   tax = 0,
+  profile,
   onSaved,
+  onLogin,
   onInvoiceNumberUsed,
 }) {
   const [template, setTemplate] = useState("template-1");
@@ -23,6 +25,12 @@ export default function ExportActions({
   const [pdfDataUrl, setPdfDataUrl] = useState(null);
   const [previewSession, setPreviewSession] = useState(0);
   const [savingAfterDownload, setSavingAfterDownload] = useState(false);
+  const [savedInvoiceId, setSavedInvoiceId] = useState(null);
+  const [emailStatus, setEmailStatus] = useState("idle"); // idle | sending | sent | error
+  const [emailError, setEmailError] = useState(null);
+  const [savedInvoiceId, setSavedInvoiceId] = useState(null);
+  const [emailStatus, setEmailStatus] = useState("idle"); // idle | sending | sent | error
+  const [emailError, setEmailError] = useState(null);
 
   const buildPdfData = () => {
     const subtotal = items.reduce(
@@ -75,7 +83,7 @@ export default function ExportActions({
 
     try {
       setSavingAfterDownload(true);
-      await storeInvoiceAfterDownload({
+      const saved = await storeInvoiceAfterDownload({
         invoiceNumber: pdfData.invoiceNumber,
         clientEmail: pdfData.clientEmail,
         senderCompanyName: pdfData.companyName,
@@ -85,7 +93,11 @@ export default function ExportActions({
         privacyPolicyAccepted,
         downloadedAt: new Date().toISOString(),
         payload: pdfData,
+        profileId: profile?.id || null,
+        senderPhone: profile?.phone || invoice.senderPhone || null,
       });
+      if (saved?.id) setSavedInvoiceId(saved.id);
+      setEmailStatus("idle");
       onSaved?.();
       setPreviewOpen(false);
     } catch (error) {
@@ -95,6 +107,52 @@ export default function ExportActions({
       );
     } finally {
       setSavingAfterDownload(false);
+    }
+  };
+
+  const handleEmailInvoice = async () => {
+    if (!savedInvoiceId || !profile?.id) return;
+    setEmailStatus("sending");
+    setEmailError(null);
+    try {
+      const dataUrl = pdfDataUrl || generateInvoicePdfDataUrl(template, buildPdfData());
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+      const res = await fetch(`${API_BASE_URL}/api/invoices/${savedInvoiceId}/email-pdf`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64: dataUrl, profileId: profile.id }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Failed to send email.");
+      }
+      setEmailStatus("sent");
+    } catch (err) {
+      setEmailStatus("error");
+      setEmailError(err.message || "Failed to send email.");
+    }
+  };
+
+  const handleEmailInvoice = async () => {
+    if (!savedInvoiceId || !profile?.id) return;
+    setEmailStatus("sending");
+    setEmailError(null);
+    try {
+      const dataUrl = pdfDataUrl || generateInvoicePdfDataUrl(template, buildPdfData());
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
+      const res = await fetch(`${API_BASE_URL}/api/invoices/${savedInvoiceId}/email-pdf`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pdfBase64: dataUrl, profileId: profile.id }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Failed to send email.");
+      }
+      setEmailStatus("sent");
+    } catch (err) {
+      setEmailStatus("error");
+      setEmailError(err.message || "Failed to send email.");
     }
   };
 
@@ -147,8 +205,78 @@ export default function ExportActions({
           <option value="template-3">Template 3: Creative</option>
         </select>
       </label>
+
       <button onClick={handlePreviewPdf}>Download PDF</button>
       <button onClick={downloadExcel}>Download Excel</button>
+
+      {profile && savedInvoiceId && (
+        <div style={{ marginTop: 12 }}>
+          <button
+            onClick={handleEmailInvoice}
+            disabled={emailStatus === "sending" || emailStatus === "sent"}
+            style={{
+              width: "100%",
+              padding: "9px 14px",
+              background: emailStatus === "sent" ? "#16a34a" : "var(--color-accent, #0f172a)",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              fontWeight: 700,
+              fontSize: 13,
+              cursor: emailStatus === "sending" || emailStatus === "sent" ? "default" : "pointer",
+              opacity: emailStatus === "sending" ? 0.7 : 1,
+              transition: "background 0.2s",
+            }}
+          >
+            {emailStatus === "sending" && "Sending…"}
+            {emailStatus === "sent" && "✓ Invoice emailed to your inbox"}
+            {(emailStatus === "idle" || emailStatus === "error") && "✉️ Email invoice to my inbox"}
+          </button>
+          {emailStatus === "error" && (
+            <p style={{ color: "#dc2626", fontSize: 12, marginTop: 6 }}>{emailError}</p>
+          )}
+        </div>
+      )}
+
+      {!profile && (
+        <div
+          style={{
+            marginTop: 12,
+            padding: "10px 14px",
+            background: "var(--color-accent-soft, #f1f5f9)",
+            borderRadius: 8,
+            fontSize: 13,
+            color: "var(--color-accent, #0f172a)",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <span>
+            🔒 <strong>Sign in</strong> to email your invoice directly to
+            clients.
+          </span>
+          {onLogin && (
+            <button
+              onClick={onLogin}
+              style={{
+                marginLeft: "auto",
+                padding: "5px 14px",
+                background: "var(--color-accent, #0f172a)",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: "pointer",
+              }}
+            >
+              Sign in
+            </button>
+          )}
+        </div>
+      )}
+
       {savingAfterDownload && <p>Saving invoice for future reference...</p>}
       <PdfPreviewModal
         key={previewSession}

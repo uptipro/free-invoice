@@ -94,6 +94,24 @@ router.post("/buildos-link", async (req, res) => {
       .json({ error: "profile_id and buildos_user_id are required" });
   }
 
+  // If a BuildOS API URL is configured, verify the user ID exists there first
+  const buildosApiUrl = process.env.BUILDOS_API_URL;
+  if (buildosApiUrl) {
+    try {
+      const checkRes = await fetch(
+        `${buildosApiUrl}/users/${buildos_user_id}`,
+        {
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+      if (!checkRes.ok) {
+        return res.status(400).json({ error: "BuildOS user ID not found" });
+      }
+    } catch {
+      // BuildOS unreachable — skip validation, proceed with linking
+    }
+  }
+
   const { data, error } = await supabase
     .from("profiles")
     .update({ buildos_user_id })

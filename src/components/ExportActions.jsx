@@ -28,9 +28,6 @@ export default function ExportActions({
   const [savedInvoiceId, setSavedInvoiceId] = useState(null);
   const [emailStatus, setEmailStatus] = useState("idle"); // idle | sending | sent | error
   const [emailError, setEmailError] = useState(null);
-  const [savedInvoiceId, setSavedInvoiceId] = useState(null);
-  const [emailStatus, setEmailStatus] = useState("idle"); // idle | sending | sent | error
-  const [emailError, setEmailError] = useState(null);
 
   const buildPdfData = () => {
     const subtotal = items.reduce(
@@ -107,33 +104,6 @@ export default function ExportActions({
       );
     } finally {
       setSavingAfterDownload(false);
-    }
-  };
-
-  const handleEmailInvoice = async () => {
-    if (!savedInvoiceId || !profile?.id) return;
-    setEmailStatus("sending");
-    setEmailError(null);
-    try {
-      const dataUrl =
-        pdfDataUrl || generateInvoicePdfDataUrl(template, buildPdfData());
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
-      const res = await fetch(
-        `${API_BASE_URL}/api/invoices/${savedInvoiceId}/email-pdf`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pdfBase64: dataUrl, profileId: profile.id }),
-        },
-      );
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || "Failed to send email.");
-      }
-      setEmailStatus("sent");
-    } catch (err) {
-      setEmailStatus("error");
-      setEmailError(err.message || "Failed to send email.");
     }
   };
 

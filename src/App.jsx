@@ -8,6 +8,7 @@ import ExportActions from "./components/ExportActions";
 import { peekInvoiceCount, recordInvoiceData } from "./utils/invoiceGenerator";
 import RegisterPage from "./pages/RegisterPage";
 import { getInvoices } from "./utils/invoiceApi";
+import Header from "./components/Header";
 
 function App() {
   // Profile state – stores full profile object

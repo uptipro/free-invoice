@@ -115,13 +115,17 @@ export default function ExportActions({
     setEmailStatus("sending");
     setEmailError(null);
     try {
-      const dataUrl = pdfDataUrl || generateInvoicePdfDataUrl(template, buildPdfData());
+      const dataUrl =
+        pdfDataUrl || generateInvoicePdfDataUrl(template, buildPdfData());
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
-      const res = await fetch(`${API_BASE_URL}/api/invoices/${savedInvoiceId}/email-pdf`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pdfBase64: dataUrl, profileId: profile.id }),
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/api/invoices/${savedInvoiceId}/email-pdf`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pdfBase64: dataUrl, profileId: profile.id }),
+        },
+      );
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || "Failed to send email.");
@@ -138,13 +142,17 @@ export default function ExportActions({
     setEmailStatus("sending");
     setEmailError(null);
     try {
-      const dataUrl = pdfDataUrl || generateInvoicePdfDataUrl(template, buildPdfData());
+      const dataUrl =
+        pdfDataUrl || generateInvoicePdfDataUrl(template, buildPdfData());
       const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
-      const res = await fetch(`${API_BASE_URL}/api/invoices/${savedInvoiceId}/email-pdf`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pdfBase64: dataUrl, profileId: profile.id }),
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/api/invoices/${savedInvoiceId}/email-pdf`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pdfBase64: dataUrl, profileId: profile.id }),
+        },
+      );
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || "Failed to send email.");
@@ -217,23 +225,32 @@ export default function ExportActions({
             style={{
               width: "100%",
               padding: "9px 14px",
-              background: emailStatus === "sent" ? "#16a34a" : "var(--color-accent, #0f172a)",
+              background:
+                emailStatus === "sent"
+                  ? "#16a34a"
+                  : "var(--color-accent, #0f172a)",
               color: "#fff",
               border: "none",
               borderRadius: 8,
               fontWeight: 700,
               fontSize: 13,
-              cursor: emailStatus === "sending" || emailStatus === "sent" ? "default" : "pointer",
+              cursor:
+                emailStatus === "sending" || emailStatus === "sent"
+                  ? "default"
+                  : "pointer",
               opacity: emailStatus === "sending" ? 0.7 : 1,
               transition: "background 0.2s",
             }}
           >
             {emailStatus === "sending" && "Sending…"}
             {emailStatus === "sent" && "✓ Invoice emailed to your inbox"}
-            {(emailStatus === "idle" || emailStatus === "error") && "✉️ Email invoice to my inbox"}
+            {(emailStatus === "idle" || emailStatus === "error") &&
+              "✉️ Email invoice to my inbox"}
           </button>
           {emailStatus === "error" && (
-            <p style={{ color: "#dc2626", fontSize: 12, marginTop: 6 }}>{emailError}</p>
+            <p style={{ color: "#dc2626", fontSize: 12, marginTop: 6 }}>
+              {emailError}
+            </p>
           )}
         </div>
       )}
